@@ -200,7 +200,9 @@ typedef void (^data_callback)(SRWebSocket *webSocket,  NSData *data);
    
     NSMutableData *_readBuffer;
     NSUInteger _readBufferOffset;
- 
+
+    NSString *_authorization;
+
     NSMutableData *_outputBuffer;
     NSUInteger _outputBufferOffset;
 
@@ -493,6 +495,11 @@ static __strong NSData *CRLFCRLF;
     
     assert([_secKey length] == 24);
     
+    if(_url.user && _url.password) {
+        NSString *userAndPasswordBase64Encoded = [[[NSString stringWithFormat:@"%@:%@", _url.user, _url.password] dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
+        _authorization = [NSString stringWithFormat:@"Basic %@", userAndPasswordBase64Encoded];
+        CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Authorization"), (__bridge CFStringRef)_authorization);
+    }
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Upgrade"), CFSTR("websocket"));
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Connection"), CFSTR("Upgrade"));
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Sec-WebSocket-Key"), (__bridge CFStringRef)_secKey);
